@@ -1,0 +1,7 @@
+
+# env file
+.env
+
+
+# misc
+.DS_Store
