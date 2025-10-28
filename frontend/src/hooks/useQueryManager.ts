@@ -45,16 +45,18 @@ export function useQueryManager(selectedConnection: string) {
       setCurrentResult(result);
       setSelectedQueryId(result.query_id);
 
-      // Reload query history
-      const reloadQueryHistory = async () => {
-        try {
-          const history = await queriesApi.getHistory(selectedConnection);
-          setQueryHistory(history);
-        } catch (error: any) {
-          console.error("Failed to reload query history:", error);
-        }
+      // Add new query to history
+      const newHistoryItem: QueryHistory = {
+        query_id: result.query_id,
+        original_query: query,
+        generated_sql: result.generated_sql,
+        timestamp: result.timestamp,
+        connection_id: selectedConnection,
+        execution_time: result.execution_time,
+        row_count: result.row_count,
+        visualization_type: result.visualization_type,
       };
-      await reloadQueryHistory();
+      setQueryHistory((prev) => [newHistoryItem, ...prev]);
 
       setSnackbarMessage("Query executed successfully!");
     } catch (error: any) {
@@ -90,16 +92,14 @@ export function useQueryManager(selectedConnection: string) {
       setCurrentResult(result);
       setSelectedQueryId(result.query_id);
 
-      // Reload query history
-      const reloadQueryHistory = async () => {
-        try {
-          const history = await queriesApi.getHistory(selectedConnection);
-          setQueryHistory(history);
-        } catch (error: any) {
-          console.error("Failed to reload query history:", error);
-        }
-      };
-      await reloadQueryHistory();
+      // Update the timestamp in history for the rerun query
+      setQueryHistory((prev) =>
+        prev.map((q) =>
+          q.query_id === queryId
+            ? { ...q, timestamp: new Date().toISOString() }
+            : q
+        )
+      );
 
       setSnackbarMessage("Query rerun successfully!");
     } catch (error: any) {
