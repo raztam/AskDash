@@ -16,7 +16,19 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-change-this-in-prod
 
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+def _parse_allowed_hosts(raw: str):
+    hosts = []
+    for item in raw.split(','):
+        host = item.strip()
+        if host.startswith('http://') or host.startswith('https://'):
+            host = host.split('://', 1)[1]
+        host = host.rstrip('/')
+        if host:
+            hosts.append(host)
+    return hosts or ['localhost', '127.0.0.1']
+
+
+ALLOWED_HOSTS = _parse_allowed_hosts(os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1'))
 
 # Application definition
 INSTALLED_APPS = [
