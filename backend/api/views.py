@@ -36,6 +36,7 @@ from .permissions import (
 from .utils.db_connector import get_connector_from_model
 from .utils.schema_extractor import extract_schema_from_connection
 from .utils.sql_executor import execute_query_safely
+from .utils.sql_cleaner import validate_and_clean_sql
 from .services.llm_factory import get_llm_service, get_current_provider_info
 from .services.prompts import build_system_prompt, build_user_prompt
 
@@ -671,6 +672,14 @@ def ask_question(request):
                 'session_id': session.id,
                 'message_id': assistant_message.id
             })
+
+        # Clean and validate the SQL query
+        cleaned_sql, cleaning_warnings = validate_and_clean_sql(llm_response.sql)
+        if cleaning_warnings:
+            logger.warning(f"SQL cleaning applied: {cleaning_warnings}")
+
+        # Use the cleaned SQL for execution
+        llm_response.sql = cleaned_sql
 
         # Execute the query
         success, results, message = execute_query_safely(

@@ -17,6 +17,10 @@ IMPORTANT RULES:
 6. Handle NULL values appropriately
 7. Use appropriate aggregation functions when needed
 8. Return ONLY valid SQL for the specified database type
+9. CRITICAL: Generate SQL as a single continuous line or use proper SQL formatting
+10. NEVER use backslashes (\) for line continuation in SQL
+11. DO NOT include duplicate SELECT keywords in the same query
+12. Ensure the SQL can be executed directly without any preprocessing
 
 DATABASE TYPE: {db_type}
 
