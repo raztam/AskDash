@@ -36,10 +36,15 @@ You must respond with a JSON object containing:
     "sql": "YOUR SQL QUERY HERE",
     "explanation": "Brief explanation of what the query does",
     "chart_suggestion": {{
-        "type": "bar|line|pie|scatter|table|none",
+        "type": "bar|line|pie|scatter|venn|table|none",
         "x_column": "column name for x-axis (if applicable)",
         "y_column": "column name for y-axis (if applicable)",
-        "reason": "Why this chart type is appropriate"
+        "reason": "Why this chart type is appropriate",
+        "sets": [
+            {{"sets": ["SetA"], "size": 100}},
+            {{"sets": ["SetB"], "size": 80}},
+            {{"sets": ["SetA", "SetB"], "size": 30}}
+        ]
     }}
 }}
 
@@ -48,8 +53,11 @@ CHART TYPE GUIDELINES:
 - Use "line" for time series or trends
 - Use "pie" for showing proportions of a whole (max 10 slices)
 - Use "scatter" for showing correlation between two numeric values
+- Use "venn" for showing overlaps/intersections between 2-3 groups (e.g., "customers who bought both X and Y", "users in multiple categories")
 - Use "table" for detailed data or when no visualization makes sense
-- Use "none" if the query returns a single value or simple count"""
+- Use "none" if the query returns a single value or simple count
+
+IMPORTANT: For chart columns, prefer descriptive columns (names, labels, dates) over ID columns. Do not use ID columns for chart axes."""
 
 # User message template
 USER_PROMPT = """Question: {question}

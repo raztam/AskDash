@@ -103,12 +103,19 @@ export interface ChatMessage {
   created_at: string
 }
 
-export type ChartType = 'bar' | 'line' | 'pie' | 'scatter' | 'table' | 'none'
+export type ChartType = 'bar' | 'line' | 'pie' | 'scatter' | 'venn' | 'table' | 'none'
+
+export interface VennSet {
+  sets: string[]
+  size: number
+  label?: string
+}
 
 export interface ChartConfig {
   x_column?: string
   y_column?: string
   reason?: string
+  sets?: VennSet[] // For Venn diagrams
 }
 
 export interface AskQuestionRequest {
