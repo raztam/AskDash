@@ -20,7 +20,6 @@ export default function Register() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     clearError()
@@ -29,8 +28,14 @@ export default function Register() {
       return
     }
 
+    // Normalize username before submitting
+    const normalizedFormData = {
+      ...formData,
+      username: formData.username.trim().toLowerCase(),
+    }
+
     try {
-      await register(formData)
+      await register(normalizedFormData)
       navigate('/')
     } catch {
       // Error is handled by store

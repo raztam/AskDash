@@ -16,7 +16,7 @@ export default function Login() {
     clearError()
 
     try {
-      await login(username, password)
+      await login(username.trim().toLowerCase(), password)
       navigate('/')
     } catch {
       // Error is handled by store
