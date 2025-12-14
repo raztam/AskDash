@@ -37,6 +37,7 @@ from .utils.db_connector import get_connector_from_model
 from .utils.schema_extractor import extract_schema_from_connection
 from .utils.sql_executor import execute_query_safely
 from .utils.sql_cleaner import validate_and_clean_sql
+from .utils.chart_utils import venn_sets_from_rows
 from .services.llm_factory import get_llm_service, get_current_provider_info
 from .services.prompts import build_system_prompt, build_user_prompt
 
@@ -719,6 +720,10 @@ def ask_question(request):
             'y_column': chart_suggestion.get('y_column'),
             'reason': chart_suggestion.get('reason')
         }
+
+        # If the LLM suggested a venn chart and the SQL returned set_name/size, convert generically
+        if chart_type == 'venn' and isinstance(results, list) and results:
+            chart_config['sets'] = venn_sets_from_rows(results)
 
         # Generate answer text - keep it simple
         result_count = len(results) if results else 0

@@ -107,17 +107,18 @@ export default function DatabaseTabs() {
       <div className="bg-white border-b border-gray-200">
         <div className="flex items-center gap-1 px-4 py-2 overflow-x-auto">
           {databases.map((db) => (
-            <button
+            <div
               key={db.id}
-              onClick={() => selectDatabase(db.id)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm whitespace-nowrap transition-colors group ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm whitespace-nowrap transition-colors group cursor-pointer ${
                 selectedDatabaseId === db.id
                   ? 'bg-primary text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              <Database className="w-4 h-4" />
-              <span>{db.name}</span>
+              <div onClick={() => selectDatabase(db.id)} className="flex items-center gap-2 flex-1">
+                <Database className="w-4 h-4" />
+                <span>{db.name}</span>
+              </div>
               {db.is_owner && (
                 <button
                   onClick={(e) => handleDelete(e, db.id)}
@@ -130,7 +131,7 @@ export default function DatabaseTabs() {
                   <X className="w-3 h-3" />
                 </button>
               )}
-            </button>
+            </div>
           ))}
 
           <button

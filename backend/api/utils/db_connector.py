@@ -174,20 +174,27 @@ class DatabaseConnector:
             else:
                 self.cursor.execute(query)
 
-            # Check if it's a SELECT query
-            if query.strip().upper().startswith('SELECT'):
+            # Check if it's a SELECT query or CTE (WITH)
+            query_upper = query.strip().upper()
+            if query_upper.startswith('SELECT') or query_upper.startswith('WITH'):
+                # Normalize results to list[dict] for all db types
                 if self.db_type == 'sqlite':
                     rows = self.cursor.fetchall()
                     columns = [desc[0] for desc in self.cursor.description]
                     results = [dict(zip(columns, row)) for row in rows]
                 elif self.db_type in ('mysql', 'mariadb'):
+                    # mysql.connector with dictionary=True cursor already returns dicts
                     results = self.cursor.fetchall()
+                    # If for some reason they're not dicts, convert them
+                    if results and not isinstance(results[0], dict):
+                        columns = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
+                        results = [dict(zip(columns, row)) for row in results]
                 elif self.db_type == 'mssql':
-                    columns = [desc[0] for desc in self.cursor.description]
+                    columns = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
                     rows = self.cursor.fetchall()
                     results = [dict(zip(columns, row)) for row in rows]
                 else:  # postgresql
-                    columns = [desc[0] for desc in self.cursor.description]
+                    columns = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
                     rows = self.cursor.fetchall()
                     results = [dict(zip(columns, row)) for row in rows]
                 return True, results, "Query executed successfully"

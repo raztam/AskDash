@@ -6,7 +6,7 @@ and analyzing data from user questions.
 """
 
 # System prompt for SQL generation
-SYSTEM_PROMPT = """You are an expert SQL assistant. Your task is to convert natural language questions into SQL queries based on the provided database schema.
+SYSTEM_PROMPT = r"""You are an expert SQL assistant. Your task is to convert natural language questions into SQL queries based on the provided database schema.
 
 IMPORTANT RULES:
 1. Only generate SELECT queries unless explicitly asked to modify data
