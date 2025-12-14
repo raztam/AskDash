@@ -661,7 +661,8 @@ def ask_question(request):
                 session=session,
                 message_type='error',
                 content="I couldn't generate a valid SQL query for your question. Please try rephrasing.",
-                explanation=llm_response.explanation
+                explanation=llm_response.explanation,
+                insights=llm_response.insights
             )
             return Response({
                 'answer': "I couldn't generate a valid SQL query for your question. Please try rephrasing.",
@@ -670,6 +671,7 @@ def ask_question(request):
                 'chart_type': None,
                 'chart_config': {},
                 'explanation': llm_response.explanation,
+                'insights': llm_response.insights,
                 'session_id': session.id,
                 'message_id': assistant_message.id
             })
@@ -699,7 +701,8 @@ def ask_question(request):
                 message_type='error',
                 content=user_friendly_message,
                 sql_query=llm_response.sql,
-                explanation=llm_response.explanation
+                explanation=llm_response.explanation,
+                insights=llm_response.insights
             )
             return Response({
                 'answer': user_friendly_message,
@@ -708,6 +711,7 @@ def ask_question(request):
                 'chart_type': None,
                 'chart_config': {},
                 'explanation': llm_response.explanation,
+                'insights': llm_response.insights,
                 'session_id': session.id,
                 'message_id': assistant_message.id
             })
@@ -738,7 +742,8 @@ def ask_question(request):
             query_results=results or [],
             chart_type=chart_type,
             chart_config=chart_config,
-            explanation=llm_response.explanation
+            explanation=llm_response.explanation,
+            insights=llm_response.insights
         )
 
         # Update session title if it's new
@@ -753,6 +758,7 @@ def ask_question(request):
             'chart_type': chart_type,
             'chart_config': chart_config,
             'explanation': llm_response.explanation,
+            'insights': llm_response.insights,
             'session_id': session.id,
             'message_id': assistant_message.id
         })

@@ -135,7 +135,7 @@ class ChatMessageSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'session', 'message_type', 'content',
             'sql_query', 'query_results', 'chart_type',
-            'chart_config', 'explanation', 'created_at'
+            'chart_config', 'explanation', 'insights', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
 
@@ -209,6 +209,7 @@ class AskResponseSerializer(serializers.Serializer):
     chart_type = serializers.CharField(allow_null=True)
     chart_config = serializers.DictField()
     explanation = serializers.CharField(allow_null=True)
+    insights = serializers.CharField(allow_null=True)
     session_id = serializers.IntegerField()
     message_id = serializers.IntegerField()
 

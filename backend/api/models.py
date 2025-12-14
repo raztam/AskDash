@@ -249,6 +249,7 @@ class ChatMessage(models.Model):
     chart_type = models.CharField(max_length=20, blank=True, null=True)
     chart_config = models.JSONField(default=dict, blank=True)
     explanation = models.TextField(blank=True, null=True)
+    insights = models.TextField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 

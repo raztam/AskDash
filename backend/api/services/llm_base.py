@@ -21,18 +21,21 @@ class LLMResponse:
         sql: str,
         explanation: str,
         chart_suggestion: Dict[str, Any],
+        insights: str = "",
         raw_response: str = ""
     ):
         self.sql = sql
         self.explanation = explanation
         self.chart_suggestion = chart_suggestion
+        self.insights = insights
         self.raw_response = raw_response
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "sql": self.sql,
             "explanation": self.explanation,
-            "chart_suggestion": self.chart_suggestion
+            "chart_suggestion": self.chart_suggestion,
+            "insights": self.insights
         }
 
 
@@ -94,6 +97,7 @@ class BaseLLMService(ABC):
                         'type': 'table',
                         'reason': 'Default table view'
                     }),
+                    insights=data.get('insights', ''),
                     raw_response=response
                 )
 
@@ -112,6 +116,7 @@ class BaseLLMService(ABC):
                 sql=sql.strip(),
                 explanation="Generated query",
                 chart_suggestion={'type': 'table', 'reason': 'Default view'},
+                insights='',
                 raw_response=response
             )
 
@@ -131,6 +136,7 @@ class BaseLLMService(ABC):
                 sql=sql.strip(),
                 explanation="Generated query (response parsing failed)",
                 chart_suggestion={'type': 'table', 'reason': 'Default view'},
+                insights='',
                 raw_response=response
             )
 
@@ -140,6 +146,7 @@ class BaseLLMService(ABC):
                 sql='',
                 explanation=f"Error parsing response: {str(e)}",
                 chart_suggestion={'type': 'none'},
+                insights='',
                 raw_response=response
             )
 

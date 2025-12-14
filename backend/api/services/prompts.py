@@ -35,6 +35,7 @@ You must respond with a JSON object containing:
 {{
     "sql": "YOUR SQL QUERY HERE",
     "explanation": "Brief explanation of what the query does",
+    "insights": "Key insights and analysis from the data (e.g., 'The most profitable region is North America with sales of $42,500 and a market share of 38%')",
     "chart_suggestion": {{
         "type": "bar|line|pie|scatter|venn|table|none",
         "x_column": "column name for x-axis (if applicable)",
@@ -47,6 +48,15 @@ You must respond with a JSON object containing:
         ]
     }}
 }}
+
+INSIGHTS GUIDELINES:
+- Provide actionable insights from the query results
+- Highlight the most important findings (top performers, trends, anomalies)
+- Use specific numbers and percentages when possible
+- Compare values when relevant (e.g., "X is 25% higher than Y")
+- Keep insights concise but meaningful (1-3 sentences)
+- Format insights in a natural, conversational way
+- Focus on what the data reveals, not just what it shows
 
 CHART TYPE GUIDELINES:
 - Use "bar" for comparing categories or discrete values

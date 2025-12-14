@@ -100,6 +100,7 @@ export interface ChatMessage {
   chart_type: ChartType | null
   chart_config: ChartConfig
   explanation: string | null
+  insights: string | null
   created_at: string
 }
 
@@ -132,6 +133,7 @@ export interface AskQuestionResponse {
   chart_type: ChartType | null
   chart_config: ChartConfig
   explanation: string | null
+  insights: string | null
   session_id: number
   message_id: number
   error?: string

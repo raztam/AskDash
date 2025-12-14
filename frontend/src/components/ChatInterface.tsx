@@ -57,6 +57,7 @@ export default function ChatInterface() {
       chart_type: null,
       chart_config: {},
       explanation: null,
+      insights: null,
       created_at: new Date().toISOString(),
     }
     addMessage(userMessage)
@@ -100,6 +101,7 @@ export default function ChatInterface() {
         chart_type: response.chart_type,
         chart_config: response.chart_config || {},
         explanation: response.explanation,
+        insights: response.insights,
         created_at: new Date().toISOString(),
       }
       addMessage(assistantMessage)
@@ -115,6 +117,7 @@ export default function ChatInterface() {
         chart_type: null,
         chart_config: {},
         explanation: null,
+        insights: null,
         created_at: new Date().toISOString(),
       }
       addMessage(errorMessage)
@@ -148,7 +151,7 @@ export default function ChatInterface() {
         </div>
       )
     }
-    
+
     return (
       <div className="flex-1 flex items-center justify-center text-gray-500">
         <div className="text-center">
@@ -285,6 +288,28 @@ function MessageBubble({
       >
         {/* Message Content */}
         <p className="whitespace-pre-wrap">{message.content}</p>
+
+        {/* AI Insights - Show prominently for assistant messages */}
+        {!isUser && !isError && message.insights && (
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <div className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
+                <span className="text-white text-xs font-bold">💡</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-blue-900 mb-1">Key Insights</p>
+                <p className="text-sm text-blue-800 leading-relaxed">{message.insights}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Explanation */}
+        {!isUser && message.explanation && (
+          <div className="mt-3 text-sm text-gray-600 italic border-t border-gray-100 pt-3">
+            {message.explanation}
+          </div>
+        )}
 
         {/* SQL Query (if enabled and available) */}
         {!isUser && showSql && message.sql_query && (
