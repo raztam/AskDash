@@ -67,3 +67,7 @@ coverage.xml
 
 # Static files
 staticfiles/
+
+# Logs (keep directory structure but ignore log files)
+logs/*.log
+logs/*.log.*

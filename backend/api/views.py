@@ -35,11 +35,12 @@ from .permissions import (
 )
 from .utils.db_connector import get_connector_from_model
 from .utils.schema_extractor import extract_schema_from_connection
-from .utils.sql_executor import execute_query_safely
+from .utils.sql_executor import execute_query_safely, SafeSQLExecutor
 from .utils.sql_cleaner import validate_and_clean_sql
 from .utils.chart_utils import venn_sets_from_rows
 from .services.llm_factory import get_llm_service, get_current_provider_info
 from .services.prompts import build_system_prompt, build_user_prompt
+from .services.query_orchestrator import QueryOrchestrator
 
 import logging
 
@@ -644,124 +645,82 @@ def ask_question(request):
                 'session_id': session.id
             }, status=status.HTTP_403_FORBIDDEN)
 
-        # Build prompts
-        system_prompt = build_system_prompt(
+        # Use QueryOrchestrator for multi-step analysis
+        llm_service = get_llm_service()
+
+        # Create database connector and SQL executor
+        connector = get_connector_from_model(db_connection)
+        sql_executor = SafeSQLExecutor(connector, permission_level)
+
+        # Create orchestrator
+        orchestrator = QueryOrchestrator(
+            llm_service=llm_service,
+            sql_executor=sql_executor,
             db_type=db_connection.db_type,
             schema=schema,
             allowed_tables=allowed_tables
         )
-        user_prompt = build_user_prompt(question, db_connection.db_type)
 
-        # Get LLM response
-        llm_service = get_llm_service()
-        llm_response = llm_service.generate_sql(system_prompt, user_prompt)
+        try:
+            # Execute multi-step analysis
+            result = orchestrator.execute(question)
 
-        if not llm_response.sql:
+            # Extract results
+            answer = result.get('answer', '')
+            explanation = result.get('explanation', '')
+            insights = result.get('insights', '')
+            representative_sql = result.get('representative_sql', '')
+            chart_type = result.get('chart_type', 'none')
+            chart_config = result.get('chart_config', {})
+            results = result.get('results', [])
+            intermediate_queries = result.get('intermediate_queries', [])
+            reasoning_steps = result.get('reasoning_steps', '')
+
+            # Handle no data scenario
+            if not results or len(results) == 0:
+                chart_type = 'none'
+                chart_config = {}
+
+            # Process Venn diagram sets if needed
+            if chart_type == 'venn' and isinstance(results, list) and results:
+                if 'sets' not in chart_config or not chart_config.get('sets'):
+                    chart_config['sets'] = venn_sets_from_rows(results)
+
+            # Save assistant message with all fields
             assistant_message = ChatMessage.objects.create(
                 session=session,
-                message_type='error',
-                content="I couldn't generate a valid SQL query for your question. Please try rephrasing.",
-                explanation=llm_response.explanation,
-                insights=llm_response.insights
+                message_type='assistant',
+                content=answer,
+                sql_query=representative_sql,
+                query_results=results,
+                chart_type=chart_type,
+                chart_config=chart_config,
+                explanation=explanation,
+                insights=insights,
+                intermediate_queries=intermediate_queries,
+                reasoning_steps=reasoning_steps
             )
+
+            # Update session title if it's new
+            if session.messages.count() == 2:  # First exchange
+                session.title = question[:50] + ('...' if len(question) > 50 else '')
+                session.save()
+
             return Response({
-                'answer': "I couldn't generate a valid SQL query for your question. Please try rephrasing.",
-                'sql_query': None,
-                'results': [],
-                'chart_type': None,
-                'chart_config': {},
-                'explanation': llm_response.explanation,
-                'insights': llm_response.insights,
+                'answer': answer,
+                'sql_query': representative_sql if show_sql else None,
+                'results': results,
+                'chart_type': chart_type,
+                'chart_config': chart_config,
+                'explanation': explanation,
+                'insights': insights,
                 'session_id': session.id,
                 'message_id': assistant_message.id
             })
 
-        # Clean and validate the SQL query
-        cleaned_sql, cleaning_warnings = validate_and_clean_sql(llm_response.sql)
-        if cleaning_warnings:
-            logger.warning(f"SQL cleaning applied: {cleaning_warnings}")
-
-        # Use the cleaned SQL for execution
-        llm_response.sql = cleaned_sql
-
-        # Execute the query
-        success, results, message = execute_query_safely(
-            db_connection=db_connection,
-            query=llm_response.sql,
-            permission_level=permission_level
-        )
-
-        if not success:
-            # Log the actual error for debugging but show user-friendly message
-            logger.error(f"Query execution failed: {message}")
-            user_friendly_message = "Something went wrong while processing your request. Please try again or rephrase your question."
-
-            assistant_message = ChatMessage.objects.create(
-                session=session,
-                message_type='error',
-                content=user_friendly_message,
-                sql_query=llm_response.sql,
-                explanation=llm_response.explanation,
-                insights=llm_response.insights
-            )
-            return Response({
-                'answer': user_friendly_message,
-                'sql_query': llm_response.sql if show_sql else None,
-                'results': [],
-                'chart_type': None,
-                'chart_config': {},
-                'explanation': llm_response.explanation,
-                'insights': llm_response.insights,
-                'session_id': session.id,
-                'message_id': assistant_message.id
-            })
-
-        # Process chart suggestion
-        chart_suggestion = llm_response.chart_suggestion or {}
-        chart_type = chart_suggestion.get('type', 'table')
-        chart_config = {
-            'x_column': chart_suggestion.get('x_column'),
-            'y_column': chart_suggestion.get('y_column'),
-            'reason': chart_suggestion.get('reason')
-        }
-
-        # If the LLM suggested a venn chart and the SQL returned set_name/size, convert generically
-        if chart_type == 'venn' and isinstance(results, list) and results:
-            chart_config['sets'] = venn_sets_from_rows(results)
-
-        # Generate answer text - keep it simple
-        result_count = len(results) if results else 0
-        answer = f"Found {result_count} result{'s' if result_count != 1 else ''}."
-
-        # Save assistant message
-        assistant_message = ChatMessage.objects.create(
-            session=session,
-            message_type='assistant',
-            content=answer,
-            sql_query=llm_response.sql,
-            query_results=results or [],
-            chart_type=chart_type,
-            chart_config=chart_config,
-            explanation=llm_response.explanation,
-            insights=llm_response.insights
-        )
-
-        # Update session title if it's new
-        if session.messages.count() == 2:  # First exchange
-            session.title = question[:50] + ('...' if len(question) > 50 else '')
-            session.save()
-
-        return Response({
-            'answer': answer,
-            'sql_query': llm_response.sql if show_sql else None,
-            'results': results or [],
-            'chart_type': chart_type,
-            'chart_config': chart_config,
-            'explanation': llm_response.explanation,
-            'insights': llm_response.insights,
-            'session_id': session.id,
-            'message_id': assistant_message.id
-        })
+        finally:
+            # Ensure connector is closed
+            connector.disconnect()
 
     except Exception as e:
         logger.error(f"Ask question error: {str(e)}", exc_info=True)

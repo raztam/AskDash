@@ -251,6 +251,10 @@ class ChatMessage(models.Model):
     explanation = models.TextField(blank=True, null=True)
     insights = models.TextField(blank=True, null=True)
 
+    # Multi-step query analysis fields
+    intermediate_queries = models.JSONField(default=list, blank=True, help_text="Internal queries executed during multi-step analysis")
+    reasoning_steps = models.TextField(blank=True, null=True, help_text="JSON string of reasoning process and intermediate steps")
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

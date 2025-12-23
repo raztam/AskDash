@@ -135,7 +135,8 @@ class ChatMessageSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'session', 'message_type', 'content',
             'sql_query', 'query_results', 'chart_type',
-            'chart_config', 'explanation', 'insights', 'created_at'
+            'chart_config', 'explanation', 'insights', 'created_at',
+            'intermediate_queries', 'reasoning_steps'
         ]
         read_only_fields = ['id', 'created_at']
 

@@ -186,6 +186,68 @@ class SafeSQLExecutor:
             logger.error(f"Query execution error: {str(e)}")
             return False, None, f"Execution error: {str(e)}"
 
+    def execute_multiple_queries(
+        self,
+        queries: List[Dict[str, Any]],
+        max_queries: int = 5
+    ) -> List[Dict[str, Any]]:
+        """
+        Execute multiple SQL queries with safety checks.
+
+        Args:
+            queries: List of query dicts with 'query_id', 'sql', 'purpose'
+            max_queries: Maximum number of queries allowed (default 5)
+
+        Returns:
+            List of result dicts with query_id, results, success, error
+        """
+        if len(queries) > max_queries:
+            raise ValueError(f"Too many queries: {len(queries)} exceeds maximum of {max_queries}")
+
+        results = []
+
+        for query_info in queries:
+            query_id = query_info.get('query_id', f"query_{len(results) + 1}")
+            sql = query_info.get('sql', '')
+            purpose = query_info.get('purpose', '')
+
+            if not sql:
+                results.append({
+                    'query_id': query_id,
+                    'sql': '',
+                    'purpose': purpose,
+                    'results': [],
+                    'row_count': 0,
+                    'success': False,
+                    'error': 'Empty SQL query'
+                })
+                continue
+
+            # Execute the query
+            success, query_results, message = self.execute(sql, add_limit=True)
+
+            if success:
+                results.append({
+                    'query_id': query_id,
+                    'sql': sql,
+                    'purpose': purpose,
+                    'results': query_results or [],
+                    'row_count': len(query_results) if query_results else 0,
+                    'success': True
+                })
+            else:
+                results.append({
+                    'query_id': query_id,
+                    'sql': sql,
+                    'purpose': purpose,
+                    'results': [],
+                    'row_count': 0,
+                    'success': False,
+                    'error': message
+                })
+
+        return results
+
     def _serialize_results(self, results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Convert results to JSON-serializable format."""
         import decimal

@@ -64,6 +64,25 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+### Monitoring Logs
+
+The application logs to both console and files in `backend/logs/`:
+
+```bash
+# Watch all application logs
+tail -f logs/askdash.log
+
+# Watch query orchestrator (multi-step analysis) logs
+tail -f logs/queries.log
+
+# Watch LLM interaction logs
+tail -f logs/llm.log
+```
+
+**Log Levels:**
+- `DEBUG=True` (development): Shows DEBUG, INFO, WARNING, ERROR logs
+- `DEBUG=False` (production): Shows INFO, WARNING, ERROR logs only
+
 ### Frontend Setup
 
 ```bash

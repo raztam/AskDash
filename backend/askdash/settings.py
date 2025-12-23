@@ -155,3 +155,106 @@ ANTHROPIC_MODEL = os.getenv('ANTHROPIC_MODEL', 'claude-3-5-sonnet-20241022')
 
 # Encryption key for database credentials
 ENCRYPTION_KEY = os.getenv('ENCRYPTION_KEY', 'your-encryption-key-change-in-production')
+
+# Logging Configuration
+LOG_LEVEL = 'DEBUG' if DEBUG else 'INFO'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {asctime} {message}',
+            'style': '{',
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': LOG_LEVEL,
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'file': {
+            'level': LOG_LEVEL,
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'askdash.log',
+            'maxBytes': 1024 * 1024 * 15,  # 15MB
+            'backupCount': 10,
+            'formatter': 'verbose',
+        },
+        'query_file': {
+            'level': LOG_LEVEL,
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'queries.log',
+            'maxBytes': 1024 * 1024 * 15,  # 15MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        'llm_file': {
+            'level': LOG_LEVEL,
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'llm.log',
+            'maxBytes': 1024 * 1024 * 15,  # 15MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console', 'file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'api': {
+            'handlers': ['console', 'file'],
+            'level': LOG_LEVEL,
+            'propagate': False,
+        },
+        'api.services.query_orchestrator': {
+            'handlers': ['console', 'query_file'],
+            'level': LOG_LEVEL,
+            'propagate': False,
+        },
+        'api.services.llm_base': {
+            'handlers': ['console', 'llm_file'],
+            'level': LOG_LEVEL,
+            'propagate': False,
+        },
+        'api.services.llm_openai': {
+            'handlers': ['console', 'llm_file'],
+            'level': LOG_LEVEL,
+            'propagate': False,
+        },
+        'api.services.llm_anthropic': {
+            'handlers': ['console', 'llm_file'],
+            'level': LOG_LEVEL,
+            'propagate': False,
+        },
+        'api.services.llm_ollama': {
+            'handlers': ['console', 'llm_file'],
+            'level': LOG_LEVEL,
+            'propagate': False,
+        },
+    },
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': LOG_LEVEL,
+    },
+}
